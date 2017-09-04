@@ -4,7 +4,7 @@ all: kv_parser.o
 
 
 %.o: %.c
-	$(CC) -O0 -g -c $^ -o $@
+	$(CC) ${CFLAGS} -c $^ -o $@
 libkv_parser.so: kv_parser.o
 	$(CC) -shared -o libkv_parser.so kv_parser.o
 libkv_parser.a: kv_parser.o
