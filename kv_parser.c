@@ -5,7 +5,7 @@
 do {                                                                \
 	if (settings->on_##FOR) {                                       \
 		if (settings->on_##FOR(parser, ptr, len) != 0) {            \
-			return i;                                               \
+			goto CONTINUE_STOP;                                     \
 		}                                                           \
 	}                                                               \
 } while (0)
@@ -14,7 +14,7 @@ do {                                                                \
 do {                                                                \
 	if (settings->on_##FOR) {                                       \
 		if (settings->on_##FOR(parser) != 0) {                      \
-			return i;                                               \
+			goto CONTINUE_STOP;                                     \
 		}                                                           \
 	}                                                               \
 } while (0)

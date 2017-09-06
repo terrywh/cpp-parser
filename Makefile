@@ -11,7 +11,7 @@ libkv_parser.a: kv_parser.o
 	$(AR) rcs $@ $^
 
 clean:
-	rm -f *.o *.so
+	rm -f *.o *.a *.so
 kv_parser_test: kv_parser.o kv_parser_test.o
 	$(CC) $^ -o $@
 test: kv_parser_test
