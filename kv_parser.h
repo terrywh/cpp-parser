@@ -29,7 +29,7 @@ typedef struct {
 } kv_parser_settings;
 
 
-extern void kv_parser_init(kv_parser* parser, kv_parser_settings* settings);
+extern void kv_parser_init(kv_parser* parser);
 extern size_t kv_parser_execute(kv_parser* parser, kv_parser_settings* settings, const char* data, size_t size);
 
 #ifdef __cplusplus

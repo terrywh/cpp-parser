@@ -35,7 +35,7 @@ enum kv_parser_status {
 	KV_STATUS_SEPERATOR_2,
 };
 
-void kv_parser_init(kv_parser* parser, kv_parser_settings* settings) {
+void kv_parser_init(kv_parser* parser) {
 	parser->status = KV_STATUS_BEFORE_KEY_WHITESPACE;
 }
 size_t kv_parser_execute(kv_parser* parser, kv_parser_settings* settings, const char* data, size_t size) {
