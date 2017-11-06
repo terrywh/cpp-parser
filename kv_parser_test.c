@@ -35,6 +35,8 @@ int main(int argc, char* argv[]) {
 
 	char* data5 = "&&";
 
+	char* data6 = "H H&[M= XXXXX&[&[";
+
 	kv_parser_settings settings;
 	memset(&settings, 0, sizeof(kv_parser_settings));
 	settings.s1 = '=';
@@ -73,6 +75,11 @@ int main(int argc, char* argv[]) {
 	kv_parser parser5;
 	kv_parser_init(&parser5);
 	kv_parser_execute(&parser5, &settings, data5, strlen(data5));
+	printf("\n\n");
+
+	kv_parser parser6;
+	kv_parser_init(&parser6);
+	kv_parser_execute(&parser6, &settings, data6, strlen(data6));
 	printf("\n\n");
 	return 0;
 }

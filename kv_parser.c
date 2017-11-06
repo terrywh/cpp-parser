@@ -67,7 +67,7 @@ size_t kv_parser_execute(kv_parser* parser, kv_parser_settings* settings, const 
 				EMIT_NOTIFY_CB(key_end);
 				parser->status = KV_STATUS_AFTER_KEY_WRAPPER;
 				goto CONTINUE_REDO;
-			}else if(isspace(c)) {
+			}else if(settings->w2 == '\0' && isspace(c)) {
 				EMIT_DATA_CB(key, data + mark, i - mark);
 				EMIT_NOTIFY_CB(key_end);
 				parser->status = KV_STATUS_AFTER_KEY_WHITESPACE;
@@ -139,7 +139,7 @@ size_t kv_parser_execute(kv_parser* parser, kv_parser_settings* settings, const 
 				EMIT_DATA_CB(val, data + mark, i - mark);
 				EMIT_NOTIFY_CB(val_end);
 				goto CONTINUE_REDO;
-			}else if(isspace(c)) {
+			}else if(settings->w2 == '\0' && isspace(c)) {
 				parser->status = KV_STATUS_AFTER_VAL_WHITESPACE;
 				EMIT_DATA_CB(val, data + mark, i - mark);
 				EMIT_NOTIFY_CB(val_end);
