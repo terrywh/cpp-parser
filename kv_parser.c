@@ -3,7 +3,7 @@
 
 #define EMIT_DATA_CB(FOR, ptr, len)                                 \
 do {                                                                \
-	if (settings->on_##FOR) {                                       \
+	if (settings->on_##FOR && len > 0) {                                       \
 		if (settings->on_##FOR(parser, ptr, len) != 0) {            \
 			goto CONTINUE_STOP;                                     \
 		}                                                           \
@@ -63,19 +63,25 @@ size_t kv_parser_execute(kv_parser* parser, kv_parser_settings* settings, const 
 			break;
 		case KV_STATUS_KEY:
 			if(settings->w2 != '\0' && c == settings->w2) {
-				parser->status = KV_STATUS_AFTER_KEY_WRAPPER;
 				EMIT_DATA_CB(key, data + mark, i - mark);
 				EMIT_NOTIFY_CB(key_end);
+				parser->status = KV_STATUS_AFTER_KEY_WRAPPER;
 				goto CONTINUE_REDO;
 			}else if(isspace(c)) {
-				parser->status = KV_STATUS_AFTER_KEY_WHITESPACE;
 				EMIT_DATA_CB(key, data + mark, i - mark);
 				EMIT_NOTIFY_CB(key_end);
+				parser->status = KV_STATUS_AFTER_KEY_WHITESPACE;
 				goto CONTINUE_REDO;
 			}else if(c == settings->s1) {
-				parser->status = KV_STATUS_SEPERATOR_1;
 				EMIT_DATA_CB(key, data + mark, i - mark);
 				EMIT_NOTIFY_CB(key_end);
+				parser->status = KV_STATUS_SEPERATOR_1;
+				goto CONTINUE_REDO;
+			}else if(c == settings->s2) {
+				EMIT_DATA_CB(key, data + mark, i - mark);
+				EMIT_NOTIFY_CB(key_end);
+				EMIT_NOTIFY_CB(val_end);
+				parser->status = KV_STATUS_SEPERATOR_2;
 				goto CONTINUE_REDO;
 			}
 			if(last) {
@@ -92,7 +98,11 @@ size_t kv_parser_execute(kv_parser* parser, kv_parser_settings* settings, const 
 			if(c == settings->s1) {
 				parser->status = KV_STATUS_SEPERATOR_1;
 				goto CONTINUE_REDO;
-			}else if(!isspace(c)) {
+			}else if(c == settings->s2) {
+				EMIT_NOTIFY_CB(val_end);
+				parser->status = KV_STATUS_SEPERATOR_2;
+				goto CONTINUE_REDO;
+			} if(!isspace(c)) {
 				goto CONTINUE_STOP; // 错误：非空白且非分隔符
 			}
 			break;
@@ -105,6 +115,10 @@ size_t kv_parser_execute(kv_parser* parser, kv_parser_settings* settings, const 
 		case KV_STATUS_BEFORE_VAL_WHITESPACE:
 			if(settings->w1 != '\0' && c == settings->w1) {
 				parser->status = KV_STATUS_BEFORE_VAL_WRAPPER;
+				goto CONTINUE_REDO;
+			}else if(c == settings->s2) {
+				EMIT_NOTIFY_CB(val_end);
+				parser->status = KV_STATUS_SEPERATOR_2;
 				goto CONTINUE_REDO;
 			}else if(!isspace(c)) {
 				mark = i;
