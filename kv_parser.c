@@ -38,6 +38,9 @@ enum kv_parser_status {
 void kv_parser_init(kv_parser* parser) {
 	parser->status = KV_STATUS_BEFORE_KEY_WHITESPACE;
 }
+void kv_parser_reset(kv_parser* parser) {
+	parser->status = KV_STATUS_BEFORE_KEY_WHITESPACE;
+}
 size_t kv_parser_execute(kv_parser* parser, kv_parser_settings* settings, const char* data, size_t size) {
 	size_t i = 0, mark = 0;
 	while(i<size) {
