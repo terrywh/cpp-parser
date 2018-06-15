@@ -1,19 +1,11 @@
-CFLAGS?= -O3
+CXX?=clang++
+CXXFLAGS+= -std=c++11 -g -O0
 
-all: kv_parser.o
-
-
-%.o: %.c
-	$(CC) ${CFLAGS} -fPIC -c $^ -o $@
-libkv_parser.so: kv_parser.o
-	$(CC) -shared -o libkv_parser.so kv_parser.o
-libkv_parser.a: kv_parser.o
-	$(AR) rcs $@ $^
-
+.PHONY: all test clean
+all: test.out
+test.out: test.cpp keyval_parser.hpp
+	${CXX} ${CXXFLAGS} $^ -o $@
+test: test.out
+	./test.out
 clean:
-	rm -f *.o *.a *.so
-kv_parser_test: kv_parser.o kv_parser_test.o
-	$(CC) $^ -o $@
-test: CFLAGS = -O0 -g
-test: kv_parser_test
-	./kv_parser_test
+	rm -f ./test.out
