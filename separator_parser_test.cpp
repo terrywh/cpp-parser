@@ -1,28 +1,32 @@
-#include "keyval_parser.hpp"
+#include <iostream>
+#include <string>
 #include <vector>
 #include <map>
-#include <iostream>
+#include "separator_parser.hpp"
+
+// 也可以使用 vector<char> 存在 push_back(c) 等类型
+typedef parser::separator_parser<std::string> parser_type;
 
 int main(int argc, char* argv[]) {
 	std::cout << "---------------------------------------" << std::endl;
 	std::cout << "vector" << std::endl;
 	std::cout << "---------------------------------------" << std::endl;
-	std::vector<keyval_parser::value_type> ctr1;
-	keyval_parser p1('[', ']', '=', '(', ')', ';', &ctr1);
+	std::vector<parser_type::entry_type> ctr1;
+	parser_type p1('[', ']', '=', '(', ')', ';', &ctr1);
 	p1.parse("[a]=(b);", 8);
 	p1.parse("  [a  a]  =  (b  b)  ;  ", 24);
 	p1.parse("  [a  a]  =  (b  b)  ;  ", 24);
 	p1.parse("  [a  a  =  (b  b  ;  ", 22);
 
-	for(auto pair: ctr1) {
-		std::cout << "\"" << pair.first << "\" = \"" << pair.second << "\"" << std::endl;
+	for(auto e: ctr1) {
+		std::cout << "\"" << e.first << "\" = \"" << e.second << "\"" << std::endl;
 	}
 	std::cout << "---------------------------------------" << std::endl;
 	std::cout << "callback" << std::endl;
 	std::cout << "---------------------------------------" << std::endl;
-	std::map<keyval_parser::key_type, keyval_parser::val_type> ctr2;
-	keyval_parser p2('\0', '\0', ':', '\0', '\0', '\n', [] (keyval_parser::value_type pair) {
-		std::cout << "\"" << pair.first << "\" = \"" << pair.second << "\"" << std::endl;
+	std::map<parser_type::value_type, parser_type::value_type> ctr2;
+	parser_type p2('\0', '\0', ':', '\0', '\0', '\n', [] (parser_type::entry_type e) {
+		std::cout << "\"" << e.first << "\" = \"" << e.second << "\"" << std::endl;
 	});
 	p2.parse("a:b\r\n", 4);
 	p2.parse("  a  :  b\r\n", 11);
@@ -30,12 +34,12 @@ int main(int argc, char* argv[]) {
 	std::cout << "---------------------------------------" << std::endl;
 	std::cout << "multimap" << std::endl;
 	std::cout << "---------------------------------------" << std::endl;
-	std::multimap<keyval_parser::key_type, keyval_parser::val_type> ctr3;
-	keyval_parser p3('\0', '\0', ':', '\0', '\0', '\n', &ctr3);
+	std::multimap<parser_type::value_type, parser_type::value_type> ctr3;
+	parser_type p3('\0', '\0', ':', '\0', '\0', '\n', &ctr3);
 	p3.parse("a:b\r\n", 4);
 	p3.parse("  a  :  b\r\n", 11);
 
-	for(auto pair: ctr3) {
-		std::cout << "\"" << pair.first << "\" = \"" << pair.second << "\"" << std::endl;
+	for(auto e: ctr3) {
+		std::cout << "\"" << e.first << "\" = \"" << e.second << "\"" << std::endl;
 	}
 }

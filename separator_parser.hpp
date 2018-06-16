@@ -1,35 +1,57 @@
-#ifndef KV_PARSER_H
-#define KV_PARSER_H
+#ifndef SEPARATOR_PARSER_H
+#define SEPARATOR_PARSER_H
 
-#include <utility>
-#include <functional>
+#include <functional> // for std::functional
 #include <cctype>
+#include "match.hpp"
 
-class keyval_parser {
+namespace parser {
+/**
+ * 针对单个字符作为分割符，包裹符号的解析器；
+ * @tparam VALUE 解析数据存储类型, 需要满足 value_type 以及 is_move_constructible 需求；
+ */
+template <class VALUE,
+	class = typename std::enable_if<match::value_type<VALUE>::value, void>::type,
+	class = typename std::enable_if<std::is_move_constructible<VALUE>::value, void>::type>
+class separator_parser {
 public:
-	typedef std::string key_type;
-	typedef std::string val_type;
-	typedef std::pair<key_type, val_type> value_type;
+	typedef VALUE value_type;
+	typedef std::pair<value_type, value_type> entry_type;
 	
-
-	keyval_parser(char kb, char ka, char op, char vb, char va, char sp, std::function<void (value_type)> cb)
+	/**
+	 * 构建一个能够解析如下形式文本的解析器；并在成功解析出一对 KEY/VAL 数据后调用回调；
+	 * 	{WHITESPACE}kb{KEY}ka{WHITESPACE}op{WHITESPACE}vb{VAL}va{WHITESPACE}sp{WHITESPACE}
+	 * 若不存在对应位置符号，请见其指定为 '\0'；
+	 * @param cb 回调函数，原型如下：
+	 * 	void callback(entry_type e);
+	 */
+	separator_parser(char kb, char ka, char op, char vb, char va, char sp, std::function<void (entry_type)> cb)
 	: kb_(kb), ka_(ka), op_(op), vb_(vb), va_(va), sp_(sp)
 	, stat_(STATUS_WHITESPACE_BEFORE_KEY)
 	, cb_(cb) {
 
 	}
-	template <class Container>
-	keyval_parser(char kb, char ka, char op, char vb, char va, char sp, Container* ctr)
+	/**
+	 * 构建一个能够解析如下形式文本的解析器；并在成功解析出一对 KEY/VAL 数据后将其写入对应容器中；
+	 * 	{WHITESPACE}kb{KEY}ka{WHITESPACE}op{WHITESPACE}vb{VAL}va{WHITESPACE}sp{WHITESPACE}
+	 * 若不存在对应位置符号，请见其指定为 '\0'；
+	 * @param ctr 容器，需要满足 container_type_1 或 container_type_2 需求；
+	 */
+	template <class CONTAINER,
+		class = typename std::enable_if<(match::container_type_1<CONTAINER, entry_type>::value || match::container_type_2<CONTAINER, entry_type>::value), void>::type>
+	separator_parser(char kb, char ka, char op, char vb, char va, char sp, CONTAINER* ctr)
 	: kb_(kb), ka_(ka), op_(op), vb_(vb), va_(va), sp_(sp)
 	, stat_(STATUS_WHITESPACE_BEFORE_KEY)
-	, cb_(std::bind(&keyval_parser::on_emit<Container>, std::placeholders::_1, ctr)) {
+	, cb_(std::bind(&separator_parser::on_emit<CONTAINER>, std::placeholders::_1, ctr)) {
 
 	}
+	/// 重置复用解析器状态，以重新开始解析过程
 	void reset() {
 		pair_.first.clear();
 		pair_.second.clear();
 		stat_ = STATUS_WHITESPACE_BEFORE_KEY;
 	}
+	/// 解析指定文本内容（在成功解析出一对 KEY/VAL 后，调用回调或写入容器）
 	std::size_t parse(const char* data, std::size_t size) {
 		char *p = const_cast<char*>(data), c;
 		bool  d = false;
@@ -131,17 +153,22 @@ public:
 		}
 		return p - data;
 	}
-	template <class Container>
-	static auto on_emit(value_type data, Container* ctr) -> decltype(ctr->emplace(std::move(data)), void()) {
-		ctr->emplace(std::move(data));
-	}
-	template <class Container>
-	static auto on_emit(value_type data, Container* ctr) -> decltype(ctr->emplace_back(std::move(data)), void()) {
-		ctr->emplace_back(std::move(data));
-	}
 private:
+	// 容器包裹回调 ( container_type_1 )
+	template <class CONTAINER>
+	static auto on_emit(entry_type data, CONTAINER* ctr) -> decltype(ctr->insert(std::move(data)), void()) {
+		ctr->insert(std::move(data));
+	}
+	// 容器包裹回调 ( container_type_2 )
+	template <class CONTAINER>
+	static auto on_emit(entry_type data, CONTAINER* ctr) -> decltype(ctr->push_back(std::move(data)), void()) {
+		ctr->push_back(std::move(data));
+	}
+
 	char kb_, ka_, op_, vb_, va_, sp_, stat_;
-	std::function<void (value_type)> cb_;
+	// 回调函数
+	std::function<void (entry_type)> cb_;
+	// 解析状态
 	enum {
 		STATUS_WHITESPACE_BEFORE_KEY,
 		STATUS_WRAPPER_BEFORE_KEY,
@@ -156,8 +183,10 @@ private:
 		STATUS_WHITESPACE_AFTER_VAL,
 		STATUS_SEPERATOR,
 	};
-	value_type pair_;
+	// 当前正在操作整理的数据容器
+	entry_type pair_;
 };
 
+}
 
-#endif // KV_PARSER_H
+#endif // SEPARATOR_PARSER_H
