@@ -1,11 +1,11 @@
-#ifndef PARSER_MATCH_H
-#define PARSER_MATCH_H
+#ifndef PARSER_CONCEPTS_H
+#define PARSER_CONCEPTS_H
 
 #include <utility>
 #include <cctype>
 
 namespace parser {
-namespace match {
+namespace concepts {
 	template <class T>
 	struct value_type {
 		template<typename U> static auto test(int) -> decltype(std::declval<U>().push_back('c'), std::true_type());
@@ -29,4 +29,4 @@ namespace match {
 }
 }
 
-#endif // PARSER_MATCH_H
+#endif // PARSER_CONCEPTS_H
