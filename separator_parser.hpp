@@ -3,7 +3,7 @@
 
 #include <functional> // for std::functional
 #include <cctype>
-#include "match.hpp"
+#include "concepts.hpp"
 
 namespace parser {
 /**
@@ -11,7 +11,7 @@ namespace parser {
  * @tparam VALUE 解析数据存储类型, 需要满足 value_type 以及 is_move_constructible 需求；
  */
 template <class VALUE,
-	class = typename std::enable_if<match::value_type<VALUE>::value, void>::type,
+	class = typename std::enable_if<concepts::value_type<VALUE>::value, void>::type,
 	class = typename std::enable_if<std::is_move_constructible<VALUE>::value, void>::type>
 class separator_parser {
 public:
@@ -38,7 +38,7 @@ public:
 	 * @param ctr 容器，需要满足 container_type_1 或 container_type_2 需求；
 	 */
 	template <class CONTAINER,
-		class = typename std::enable_if<(match::container_type_1<CONTAINER, entry_type>::value || match::container_type_2<CONTAINER, entry_type>::value), void>::type>
+		class = typename std::enable_if<(concepts::container_type_1<CONTAINER, entry_type>::value || concepts::container_type_2<CONTAINER, entry_type>::value), void>::type>
 	separator_parser(char kb, char ka, char op, char vb, char va, char sp, CONTAINER* ctr)
 	: kb_(kb), ka_(ka), op_(op), vb_(vb), va_(va), sp_(sp)
 	, stat_(STATUS_WHITESPACE_BEFORE_KEY)

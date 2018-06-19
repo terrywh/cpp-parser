@@ -3,14 +3,16 @@
 
 #include <functional> // for std::functional
 #include <cctype>
-#include "match.hpp"
+#include "concepts.hpp"
 
 namespace parser {
 /**
  * 针对 multipart/form-data 等 multipart 形式的解析器
  * @tparam VALUE 存储解析数据，满足 value_type 要求
  */
-template <class VALUE>
+template <class VALUE,
+	class = typename std::enable_if<concepts::value_type<VALUE>::value, void>::type,
+	class = typename std::enable_if<std::is_move_constructible<VALUE>::value, void>::type>
 class multipart_parser {
 public:
 	typedef VALUE value_type;
@@ -32,7 +34,7 @@ public:
 	 * @param ctr 容器，需要满足 container_type_1 或 container_type_2 需求；
 	 */
 	template <class CONTAINER,
-		class = typename std::enable_if<(match::container_type_1<CONTAINER, entry_type>::value || match::container_type_2<CONTAINER, entry_type>::value), void>::type>
+		class = typename std::enable_if<(concepts::container_type_1<CONTAINER, entry_type>::value || concepts::container_type_2<CONTAINER, entry_type>::value), void>::type>
 	multipart_parser(const std::string& boundary, CONTAINER* ctr)
 	: boundary_(boundary)
 	, stat_(STATUS_BEFORE_BOUNDARY_1)
