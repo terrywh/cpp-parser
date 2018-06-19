@@ -19,5 +19,6 @@ test: concepts_test.out separator_parser_test.out multipart_parser_test.out
 clean:
 	rm -f ./separator_parser_test.out multipart_parser_test.out
 install: concepts.hpp separator_parser.hpp multipart_parser.hpp
-	mkdir -p ${PREFIX}/include
-	cp -f $^ ${PREFIX}/include/
+	mkdir -p ${PREFIX}/include/parser
+	rm -f ${PREFIX}/include/parser/*
+	cp -f $^ ${PREFIX}/include/parser

@@ -74,7 +74,6 @@ public:
 					// 非首个 boundary 会含有数据需要抛出 (此时 KEY 应为空)
 					if(entry_.second.size() > 0) { // DATA KEY/VAL
 						cb_(std::move(entry_));
-						std::cout << "entry after move: " << entry_.second.size() << std::endl;
 					}
 					offset_ = 0;
 					++stat_;
