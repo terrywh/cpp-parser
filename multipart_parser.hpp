@@ -1,6 +1,7 @@
 #ifndef MULTIPART_PARSER_H
 #define MULTIPART_PARSER_H
 
+#include <string>
 #include <functional> // for std::functional
 #include <cctype>
 #include "concepts.hpp"
@@ -10,13 +11,15 @@ namespace parser {
  * 针对 multipart/form-data 等 multipart 形式的解析器
  * @tparam VALUE 存储解析数据，满足 value_type 要求
  */
-template <class VALUE,
-	class = typename std::enable_if<concepts::value_type<VALUE>::value, void>::type,
-	class = typename std::enable_if<std::is_move_constructible<VALUE>::value, void>::type>
+template <class Key, class Value,
+	class = typename std::enable_if<concepts::is_char_pushable<Key>::value && concepts::has_size<Key>::value && std::is_move_constructible<Key>::value, void>::type,
+	class = typename std::enable_if<concepts::is_char_pushable<Value>::value && std::is_move_constructible<Value>::value, void>::type
+>
 class multipart_parser {
 public:
-	typedef VALUE value_type;
-	typedef std::pair<value_type, value_type> entry_type;
+	typedef Key key_type;
+	typedef Value value_type;
+	typedef std::pair<key_type, value_type> entry_type;
 	/**
 	 * 创建一个解析器，并将成功解析出的 KEY/VAL 对回调指定函数；
 	 * @param cb 回调函数，原型如下：
@@ -34,7 +37,7 @@ public:
 	 * @param ctr 容器，需要满足 container_type_1 或 container_type_2 需求；
 	 */
 	template <class CONTAINER,
-		class = typename std::enable_if<(concepts::container_type_1<CONTAINER, entry_type>::value || concepts::container_type_2<CONTAINER, entry_type>::value), void>::type>
+		class = typename std::enable_if<(concepts::is_entry_insertable<CONTAINER, entry_type>::value || concepts::is_entry_pushable<CONTAINER, entry_type>::value), void>::type>
 	multipart_parser(const std::string& boundary, CONTAINER* ctr)
 	: boundary_(boundary)
 	, stat_(STATUS_BEFORE_BOUNDARY_1)

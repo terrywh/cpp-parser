@@ -1,6 +1,7 @@
 #ifndef SEPARATOR_PARSER_H
 #define SEPARATOR_PARSER_H
 
+#include <string>
 #include <functional> // for std::functional
 #include <cctype>
 #include "concepts.hpp"
@@ -10,13 +11,15 @@ namespace parser {
  * 针对单个字符作为分割符，包裹符号的解析器；
  * @tparam VALUE 解析数据存储类型, 需要满足 value_type 以及 is_move_constructible 需求；
  */
-template <class VALUE,
-	class = typename std::enable_if<concepts::value_type<VALUE>::value, void>::type,
-	class = typename std::enable_if<std::is_move_constructible<VALUE>::value, void>::type>
+template <class Key, class Value,
+	class = typename std::enable_if<concepts::is_char_pushable<Key>::value && concepts::has_size<Key>::value && std::is_move_constructible<Key>::value, void>::type,
+	class = typename std::enable_if<concepts::is_char_pushable<Value>::value && std::is_move_constructible<Value>::value, void>::type
+>
 class separator_parser {
 public:
-	typedef VALUE value_type;
-	typedef std::pair<value_type, value_type> entry_type;
+	typedef Key key_type;
+	typedef Value value_type;
+	typedef std::pair<key_type, value_type> entry_type;
 	
 	/**
 	 * 构建一个能够解析如下形式文本的解析器；并在成功解析出一对 KEY/VAL 数据后调用回调；
@@ -38,7 +41,7 @@ public:
 	 * @param ctr 容器，需要满足 container_type_1 或 container_type_2 需求；
 	 */
 	template <class CONTAINER,
-		class = typename std::enable_if<(concepts::container_type_1<CONTAINER, entry_type>::value || concepts::container_type_2<CONTAINER, entry_type>::value), void>::type>
+		class = typename std::enable_if<(concepts::is_entry_insertable<CONTAINER, entry_type>::value || concepts::is_entry_pushable<CONTAINER, entry_type>::value), void>::type>
 	separator_parser(char kb, char ka, char op, char vb, char va, char sp, CONTAINER* ctr)
 	: kb_(kb), ka_(ka), op_(op), vb_(vb), va_(va), sp_(sp)
 	, stat_(STATUS_WHITESPACE_BEFORE_KEY)
@@ -47,8 +50,8 @@ public:
 	}
 	/// 重置复用解析器状态，以重新开始解析过程
 	void reset() {
-		pair_.first.clear();
-		pair_.second.clear();
+		entry_.first.clear();
+		entry_.second.clear();
 		stat_ = STATUS_WHITESPACE_BEFORE_KEY;
 	}
 	/// 解析指定文本内容（在成功解析出一对 KEY/VAL 后，调用回调或写入容器）
@@ -82,7 +85,7 @@ public:
 						continue;
 					}
 				}
-				pair_.first.push_back(c);
+				entry_.first.push_back(c);
 				break;
 			case STATUS_WRAPPER_AFTER_KEY:
 				if(ka_ != c) {
@@ -117,18 +120,18 @@ public:
 			case STATUS_VAL:
 				if(va_ == '\0') {
 					if(sp_ == c || std::isspace(c)) {
-						cb_(std::move(pair_));
+						cb_(std::move(entry_));
 						++stat_;
 						continue;
 					}
 				}else{
 					if(va_ == c || sp_ == c) {
-						cb_(std::move(pair_));
+						cb_(std::move(entry_));
 						++stat_;
 						continue;
 					}
 				}
-				pair_.second.push_back(c);
+				entry_.second.push_back(c);
 				break;
 			case STATUS_WRAPPER_AFTER_VAL:
 				if(va_ != c) {
@@ -152,6 +155,12 @@ public:
 			++p;
 		}
 		return p - data;
+	}
+	// 数据结束, 将现有解析出的结果返回 (若存在)
+	std::size_t end() {
+		if(entry_.first.size() > 0) {
+			cb_(std::move(entry_));
+		}
 	}
 private:
 	// 容器包裹回调 ( container_type_1 )
@@ -184,7 +193,7 @@ private:
 		STATUS_SEPERATOR,
 	};
 	// 当前正在操作整理的数据容器
-	entry_type pair_;
+	entry_type entry_;
 };
 
 }
