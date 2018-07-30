@@ -28,7 +28,8 @@ int main(int argc, char* argv[]) {
 	parser_type p2('\0', '\0', ':', '\0', '\0', '\n', [] (parser_type::entry_type e) {
 		std::cout << "\"" << e.first << "\" = \"" << e.second << "\"" << std::endl;
 	});
-	p2.parse("a:b\r\n", 4);
+	p2.parse("a:\r\n", 4);
+	p2.parse("a:b\r\n", 5);
 	p2.parse("  a  :  b\r\n", 11);
 
 	std::cout << "---------------------------------------" << std::endl;

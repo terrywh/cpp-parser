@@ -20,7 +20,7 @@ public:
 	typedef Key key_type;
 	typedef Value value_type;
 	typedef std::pair<key_type, value_type> entry_type;
-	
+
 	/**
 	 * 构建一个能够解析如下形式文本的解析器；并在成功解析出一对 KEY/VAL 数据后调用回调；
 	 * 	{WHITESPACE}kb{KEY}ka{WHITESPACE}op{WHITESPACE}vb{VAL}va{WHITESPACE}sp{WHITESPACE}
@@ -90,11 +90,11 @@ public:
 			case STATUS_WRAPPER_AFTER_KEY:
 				if(ka_ != c) {
 					++stat_;
-					continue;	
+					continue;
 				}
 				break;
 			case STATUS_WHITESPACE_AFTER_KEY:
-				if(op_ == c || !std::isspace(c)) {
+				if(op_ == c || sp_ == c || !std::isspace(c)) {
 					++stat_;
 					continue;
 				}
@@ -106,7 +106,7 @@ public:
 				}
 				break;
 			case STATUS_WHITESPACE_BEFORE_VAL:
-				if(vb_ == c || !std::isspace(c)) {
+				if(vb_ == c || sp_ == c || !std::isspace(c)) {
 					++stat_;
 					continue;
 				}
