@@ -157,7 +157,7 @@ public:
 		return p - data;
 	}
 	// 数据结束, 将现有解析出的结果返回 (若存在)
-	std::size_t end() {
+	void end() {
 		if(entry_.first.size() > 0) {
 			cb_(std::move(entry_));
 		}
